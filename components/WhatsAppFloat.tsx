@@ -17,7 +17,7 @@ export default function WhatsAppFloat() {
   return (
     <div 
       className="fixed z-50"
-      style={{ bottom: '0px', right: '0px', width: '220px', height: '220px', pointerEvents: 'none' }}
+      style={{ bottom: '0px', right: '0px', width: '140px', height: '140px', pointerEvents: 'none' }}
     >
       {/* Chat Bubble (Tooltip) */}
       <div 
@@ -77,17 +77,16 @@ export default function WhatsAppFloat() {
           }
         }}
       >
-        {/* We use an absolute image larger than the container to crop out transparent padding natively */}
         <img
-          src="/Desain tanpa judul-Photoroom.png"
+          src="/bergerak.gif"
           alt="Maskot SIPeHAM Kemenkumham"
           className="absolute drop-shadow-[0_10px_15px_rgba(11,26,44,0.25)]"
           style={{ 
-            width: '400px',
-            maxWidth: 'none',
-            bottom: '-25px', 
-            right: '-25px',
-            objectFit: 'contain'
+            width: '100px',
+            bottom: '0px', 
+            right: '20px',
+            objectFit: 'contain',
+            mixBlendMode: 'darken'
           }}
         />
       </a>

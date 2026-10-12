@@ -816,31 +816,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
             <PlusCircle size={13} /> Pos Baru
           </button>
 
-          {/* Quick AI Berita Generator Button */}
-          <button
-            onClick={() => {
-              handleResetPostForm()
-              setCurrentView('posts_new')
-              setCustomAiTopic('')
-              setAiPromptModalOpen(true)
-            }}
-            style={{
-              background: 'linear-gradient(135deg, #d4af37 0%, #f59e0b 100%)',
-              color: '#123c69',
-              border: 'none',
-              padding: '3px 10px',
-              borderRadius: '3px',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              boxShadow: '0 2px 6px rgba(212,175,55,0.3)',
-            }}
-          >
-            <Sparkles size={13} /> ✨ AI Berita
-          </button>
+
         </div>
 
         {/* Right User Bar */}
@@ -1291,31 +1267,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomAiTopic(postTitle)
-                      setAiPromptModalOpen(true)
-                    }}
-                    disabled={isGeneratingAI}
-                    style={{
-                      background: 'linear-gradient(135deg, #123c69 0%, #1e4b85 100%)',
-                      color: '#d4af37',
-                      border: '1px solid #d4af37',
-                      padding: '8px 16px',
-                      borderRadius: '6px',
-                      fontWeight: 800,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 4px 12px rgba(18,60,105,0.25)',
-                    }}
-                  >
-                    <Sparkles size={16} className={isGeneratingAI ? 'animate-spin' : ''} />
-                    {isGeneratingAI ? 'Gemini AI Menulis Berita...' : '✨ Generate Berita AI Gemini'}
-                  </button>
+
 
                   <button
                     onClick={() => setCurrentView('posts_all')}
@@ -1349,66 +1301,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                 </div>
               </div>
 
-              {/* PROMINENT AI NEWS GENERATOR BANNER CARD */}
-              <div
-                style={{
-                  background: 'linear-gradient(135deg, #0f2c4d 0%, #123c69 50%, #1b4d82 100%)',
-                  borderRadius: '10px',
-                  padding: '20px 24px',
-                  color: '#ffffff',
-                  boxShadow: '0 8px 24px rgba(18,60,105,0.2)',
-                  border: '1px solid #d4af37',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '20px',
-                  flexWrap: 'wrap',
-                  marginBottom: '20px',
-                }}
-              >
-                <div style={{ flex: 1, minWidth: '280px' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(212,175,55,0.2)', border: '1px solid #d4af37', color: '#fef3c7', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
-                    <Sparkles size={13} color="#d4af37" /> Asisten Penulis Berita AI Google Gemini
-                  </div>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>
-                    Generasi Berita Otomatis Dari Judul / Topik
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: 1.5 }}>
-                    Ketik judul atau topik berita di kotak bawah, lalu klik tombol emas ini. AI Gemini akan menyusun artikel berita pemerintahan resmi secara otomatis lengkap dengan kutipan Kakanwil Karyadi, S.H., M.H.
-                  </p>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!postTitle.trim()) {
-                      setCustomAiTopic('')
-                      setAiPromptModalOpen(true)
-                    } else {
-                      handleGenerateNewsWithAI(postTitle)
-                    }
-                  }}
-                  disabled={isGeneratingAI}
-                  style={{
-                    background: 'linear-gradient(135deg, #d4af37 0%, #f59e0b 100%)',
-                    color: '#123c69',
-                    border: 'none',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    fontWeight: 900,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 14px rgba(212,175,55,0.4)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <Sparkles size={18} className={isGeneratingAI ? 'animate-spin' : ''} />
-                  {isGeneratingAI ? 'Gemini AI Menulis Berita...' : '✨ GENERATE BERITA DENGAN AI'}
-                </button>
-              </div>
 
               {/* Success Notification Alert */}
               {publishSuccessMsg && (

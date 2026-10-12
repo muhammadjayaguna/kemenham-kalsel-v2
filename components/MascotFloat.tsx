@@ -78,8 +78,8 @@ export default function MascotFloat() {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         style={{
-          width: '100px',
-          height: '130px',
+          width: '75px',
+          height: '98px',
           position: 'relative',
           cursor: 'pointer',
           pointerEvents: 'auto',
@@ -90,7 +90,7 @@ export default function MascotFloat() {
       >
         {/* Pastikan gambar maskot.png sudah ada di folder public */}
         <img
-          src="/maskot.png"
+          src="/bergerak.gif"
           alt="Maskot KemenHAM Kanwil Kalsel"
           style={{
             width: '100%',
