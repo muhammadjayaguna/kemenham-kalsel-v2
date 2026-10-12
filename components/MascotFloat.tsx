@@ -1,13 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function MascotFloat() {
+  const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
 
   // Tampilkan maskot setelah scroll beberapa piksel
   useEffect(() => {
+    if (pathname?.startsWith('/admin')) return
     const toggleVisibility = () => {
       if (window.scrollY > 300) {
         setIsVisible(true)
@@ -33,7 +36,7 @@ export default function MascotFloat() {
     }
   }, [])
 
-  if (!isVisible) return null
+  if (pathname?.startsWith('/admin') || !isVisible) return null
 
   return (
     <div

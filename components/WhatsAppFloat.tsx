@@ -1,14 +1,21 @@
 'use client'
 
 import React, { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send } from 'lucide-react'
 
 const WHATSAPP_NUMBER = '6281150000426'
 const DEFAULT_MESSAGE = 'Halo SIPeHAM, saya ingin bertanya mengenai layanan Kanwil Kemenkumham Kalsel.'
 
 export default function WhatsAppFloat() {
+  const pathname = usePathname()
   const [isTooltipVisible, setIsTooltipVisible] = useState(true)
   const [isHovered, setIsHovered] = useState(false)
+
+  // Jangan tampilkan maskot dan balon text saat di dashboard admin
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`
 
