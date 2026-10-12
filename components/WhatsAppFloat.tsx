@@ -20,7 +20,7 @@ export default function WhatsAppFloat() {
       <div className="relative flex flex-col items-end">
         {/* Balon Kata / Speech Bubble */}
         <div 
-          className={`transition-all duration-300 ease-out origin-bottom-right mb-1.5
+          className={`transition-all duration-300 ease-out origin-bottom-right mb-4
             ${isTooltipVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-3 scale-95 pointer-events-none'}`}
           style={{ pointerEvents: isTooltipVisible ? 'auto' : 'none', zIndex: 51 }}
         >
@@ -69,7 +69,7 @@ export default function WhatsAppFloat() {
 
             {/* Ekor Balon Teks (Speech Bubble Tail) yang menunjuk ke maskot */}
             <div 
-              className="absolute -bottom-2 right-11 w-4 h-4 bg-white border-r border-b border-slate-100 transform rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.03)]"
+              className="absolute -bottom-2 right-14 w-4 h-4 bg-white border-r border-b border-slate-100 transform rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.03)]"
               aria-hidden="true"
             />
           </div>
@@ -78,7 +78,7 @@ export default function WhatsAppFloat() {
         {/* Maskot Karakter */}
         <div 
           className="relative flex justify-end"
-          style={{ width: '105px', height: '115px' }}
+          style={{ width: '130px', height: '142px' }}
         >
           <a
             href={waLink}

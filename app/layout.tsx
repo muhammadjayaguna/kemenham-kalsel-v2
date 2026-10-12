@@ -6,7 +6,6 @@ import Footer from '@/components/Footer'
 import JsonLd from '@/components/JsonLd'
 import WhatsAppFloat from '@/components/WhatsAppFloat'
 import MarqueeBar from '@/components/MarqueeBar'
-import MascotFloat from '@/components/MascotFloat'
 
 const siteUrl = 'https://kemenham-kalsel.go.id'
 
@@ -195,7 +194,6 @@ export default function RootLayout({
         </main>
         <Footer />
         <WhatsAppFloat />
-        <MascotFloat />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
