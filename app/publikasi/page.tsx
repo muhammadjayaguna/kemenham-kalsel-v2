@@ -92,11 +92,22 @@ export default function PublikasiPage() {
           }))
         }
 
-        // Fallback to local storage or DEFAULT_INITIAL_NEWS
+        // Fallback to local storage and DEFAULT_INITIAL_NEWS
         if (mappedNews.length === 0 && typeof window !== 'undefined') {
           try {
             const cachedLocal = localStorage.getItem('kemenham_local_news')
-            const newsSource = cachedLocal ? JSON.parse(cachedLocal) : DEFAULT_INITIAL_NEWS
+            let newsSource = DEFAULT_INITIAL_NEWS
+            if (cachedLocal) {
+              const parsed = JSON.parse(cachedLocal)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                newsSource = [
+                  ...parsed,
+                  ...DEFAULT_INITIAL_NEWS.filter(
+                    (d) => !parsed.some((p: any) => p.id === d.id || p.judul === d.judul)
+                  ),
+                ]
+              }
+            }
             mappedNews = newsSource.map((item: any, idx: number) => ({
               id: item.id || `news-${idx}`,
               category: item.kategori || 'Siaran Pers',

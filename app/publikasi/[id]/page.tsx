@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
 import JsonLd from '@/components/JsonLd'
-import { supabase, BeritaPublikasi } from '@/lib/supabase'
+import { supabase, BeritaPublikasi, DEFAULT_INITIAL_NEWS } from '@/lib/supabase'
 import {
   Calendar,
   Clock,
@@ -24,6 +24,20 @@ import {
   Sparkles,
 } from 'lucide-react'
 
+// Helper function to format content (converts plain text newlines into paragraphs if needed)
+function formatArticleHtml(content?: string, summary?: string): string {
+  if (!content || !content.trim()) {
+    return `<p>${summary || 'Isi artikel warta ini belum tersedia.'}</p>`
+  }
+  if (/<[a-z][\s\S]*>/i.test(content)) {
+    return content
+  }
+  return content
+    .split(/\n\s*\n/)
+    .map((p) => `<p>${p.trim().replace(/\n/g, '<br />')}</p>`)
+    .join('')
+}
+
 export default function DetailPublikasiPage() {
   const params = useParams()
   const router = useRouter()
@@ -38,48 +52,134 @@ export default function DetailPublikasiPage() {
     const fetchArticleData = async () => {
       setIsLoading(true)
       try {
-        if (!id) {
-          setIsLoading(false)
-          return
-        }
-
-        // Fetch exact article from Supabase
-        const { data, error } = await supabase
-          .from('berita_publikasi')
-          .select('*')
-          .eq('id', id)
-          .single()
-
-        if (!error && data) {
-          setArticle(data)
-        } else {
-          // If not found by exact ID, try to fetch the latest article
-          const { data: latestNews } = await supabase
-            .from('berita_publikasi')
-            .select('*')
-            .order('published_at', { ascending: false })
-            .limit(1)
-
-          if (latestNews && latestNews.length > 0) {
-            setArticle(latestNews[0])
-          } else {
-            setArticle(null)
+        // 1. Gather all local cache & fallback articles
+        let localArticles: BeritaPublikasi[] = []
+        if (typeof window !== 'undefined') {
+          try {
+            const cached = localStorage.getItem('kemenham_local_news')
+            if (cached) {
+              const parsed = JSON.parse(cached)
+              if (Array.isArray(parsed)) localArticles = parsed
+            }
+          } catch (e) {
+            console.warn('Error reading local news cache:', e)
           }
         }
 
-        // Fetch related news from Supabase
-        const { data: relatedData } = await supabase
-          .from('berita_publikasi')
-          .select('*')
-          .neq('id', id)
-          .order('published_at', { ascending: false })
-          .limit(3)
+        const fallbackPool: BeritaPublikasi[] = [
+          ...localArticles,
+          ...DEFAULT_INITIAL_NEWS.filter(
+            (d) => !localArticles.some((l) => l.id === d.id || l.judul === d.judul)
+          ),
+        ]
 
-        if (relatedData) {
-          setRelatedNews(relatedData)
+        let foundArticle: BeritaPublikasi | null = null
+
+        // 2. If id looks like a valid UUID, attempt Supabase lookup
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+        if (isUuid) {
+          try {
+            const { data, error } = await supabase
+              .from('berita_publikasi')
+              .select('*')
+              .eq('id', id)
+              .maybeSingle()
+
+            if (!error && data) {
+              foundArticle = data
+            }
+          } catch (err) {
+            console.warn('Supabase fetch error for UUID:', err)
+          }
         }
+
+        // 3. Match against fallback pool by exact ID (e.g. news-init-1, news-init-2, news-...)
+        if (!foundArticle && id) {
+          foundArticle = fallbackPool.find((a) => a.id === id) || null
+        }
+
+        // 4. Match against numeric index / alias (e.g. news-init-1 -> 0, news-0 -> 0, 1 -> 0)
+        if (!foundArticle && id) {
+          const numMatch = id.match(/(?:news-init-|news-)?(\d+)/i)
+          if (numMatch) {
+            const num = parseInt(numMatch[1], 10)
+            if (num > 0 && num <= fallbackPool.length) {
+              foundArticle = fallbackPool[num - 1]
+            } else if (num >= 0 && num < fallbackPool.length) {
+              foundArticle = fallbackPool[num]
+            }
+          }
+        }
+
+        // 5. Match by URL-friendly slug or title match
+        if (!foundArticle && id) {
+          const cleanId = decodeURIComponent(id).toLowerCase().replace(/[^a-z0-9]/g, ' ').trim()
+          if (cleanId.length > 2) {
+            foundArticle =
+              fallbackPool.find((a) => {
+                const cleanJudul = a.judul.toLowerCase().replace(/[^a-z0-9]/g, ' ')
+                return cleanJudul.includes(cleanId) || cleanId.includes(cleanJudul.slice(0, 30))
+              }) || null
+          }
+        }
+
+        // 6. Try fetching from Supabase latest list to match by title
+        if (!foundArticle) {
+          try {
+            const { data: latestNews, error } = await supabase
+              .from('berita_publikasi')
+              .select('*')
+              .order('published_at', { ascending: false })
+              .limit(10)
+
+            if (!error && latestNews && latestNews.length > 0) {
+              const cleanId = decodeURIComponent(id).toLowerCase()
+              const match = latestNews.find(
+                (item) => item.judul.toLowerCase().includes(cleanId) || item.id === id
+              )
+              foundArticle = match || latestNews[0]
+            }
+          } catch (e) {
+            console.warn('Supabase fallback fetch error:', e)
+          }
+        }
+
+        // 7. Ultimate fallback: Use first item from fallback pool so user NEVER sees a blank page!
+        if (!foundArticle && fallbackPool.length > 0) {
+          foundArticle = fallbackPool[0]
+        }
+
+        setArticle(foundArticle)
+
+        // 8. Resolve related news
+        let related: BeritaPublikasi[] = []
+        try {
+          let query = supabase.from('berita_publikasi').select('*')
+          if (foundArticle?.id && isUuid) {
+            query = query.neq('id', foundArticle.id)
+          }
+          const { data: relatedData } = await query
+            .order('published_at', { ascending: false })
+            .limit(3)
+
+          if (relatedData && relatedData.length > 0) {
+            related = relatedData
+          }
+        } catch (e) {}
+
+        // Complement related news from fallbackPool
+        if (related.length < 3) {
+          const additional = fallbackPool.filter(
+            (item) =>
+              item.id !== foundArticle?.id &&
+              item.judul !== foundArticle?.judul &&
+              !related.some((r) => r.judul === item.judul)
+          )
+          related = [...related, ...additional].slice(0, 3)
+        }
+        setRelatedNews(related)
       } catch (err) {
-        console.log('Error fetching article:', err)
+        console.error('Error fetching article:', err)
       } finally {
         setIsLoading(false)
       }
@@ -312,9 +412,7 @@ export default function DetailPublikasiPage() {
             <div
               className="prose-article"
               dangerouslySetInnerHTML={{
-                __html:
-                  article.konten ||
-                  `<p>${article.ringkasan || 'Isi artikel lengkap belum tersedia.'}</p>`,
+                __html: formatArticleHtml(article.konten, article.ringkasan),
               }}
             />
 

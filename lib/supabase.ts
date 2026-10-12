@@ -108,5 +108,25 @@ export const DEFAULT_INITIAL_NEWS: BeritaPublikasi[] = [
     konten: '<p>Banjarmasin — Kanwil KemenHAM Kalsel menggelar rapat harmonisasi produk hukum daerah bersama jajaran Pemerintah Provinsi Kalimantan Selatan dan DPRD Kabupaten/Kota.</p><p>Harmonisasi ini bertujuan untuk memastikan seluruh Rancangan Peraturan Daerah (Raperda) yang disusun mencerminkan nilai-nilai Penghormatan, Pelindungan, Pemenuhan, Penegakan, dan Pemajuan HAM (P5HAM).</p><p>Dengan adanya proses harmonisasi ini, peraturan daerah di Kalsel dipastikan berorientasi pada kesejahteraan rakyat dan bebas dari norma hukum yang diskriminatif.</p>',
     published_at: '2026-09-20T10:15:00.000Z',
   },
+  {
+    id: 'news-init-4',
+    judul: 'Sosialisasi Pembentukan Desa Sadar HAM di Kabupaten Barito Kuala Menuju Wilayah Inklusif',
+    kategori: 'Pemberdayaan HAM',
+    penulis: 'Divisi Pelayanan Hukum & HAM',
+    image_url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
+    ringkasan: 'Peningkatan kapasitas aparatur desa dan tokoh masyarakat dalam mengimplementasikan prinsip kesetaraan hak, pencegahan perkawinan anak, serta pemenuhan hak administrasi kependudukan.',
+    konten: '<p>Marabahan — Kantor Wilayah Kementerian Hak Asasi Manusia Kalimantan Selatan menyelenggarakan bimbingan teknis dan sosialisasi Desa Sadar HAM di Kabupaten Barito Kuala.</p><p>Program ini bertujuan untuk membangun kesadaran hukum dan HAM dari tingkat akar rumput, sehingga setiap aparatur desa mampu menyelesaikan dinamika sosial warganya dengan mengedepankan mediasi berbasis kekeluargaan dan perlindungan hak-hak dasar kelompok rentan.</p><blockquote>"Desa Sadar HAM adalah fondasi kemajuan daerah. Ketika hak setiap warga desa dihormati dan dilindungi, keadilan sosial dapat terwujud secara nyata," ujar perwakilan Divisi Pelayanan Hukum dan HAM Kalsel.</blockquote><p>Kegiatan ini diikuti oleh para kepala desa, badan permusyawaratan desa, tokoh adat, serta kader perempuan se-Kabupaten Barito Kuala.</p>',
+    published_at: '2026-09-15T08:30:00.000Z',
+  },
+  {
+    id: 'news-init-5',
+    judul: 'Akselerasi Verifikasi Penilaian Kabupaten/Kota Peduli HAM (KKHAM) Tahun 2026 se-Kalsel',
+    kategori: 'Evaluasi Kebijakan',
+    penulis: 'Tim KKHAM Kalsel',
+    image_url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80',
+    ringkasan: 'Kanwil KemenHAM Kalsel mengawal kelengkapan data dukung indikator hak sipil, politik, ekonomi, sosial, dan budaya pada 13 Kabupaten/Kota di Kalimantan Selatan.',
+    konten: '<p>Banjarmasin — Tim Verifikator KKHAM Kanwil KemenHAM Kalsel menggelar rapat evaluasi kelengkapan data dukung bersama Bagian Hukum Setda dari 13 Kabupaten/Kota se-Kalimantan Selatan.</p><p>Penilaian KKHAM mencakup indikator pemenuhan hak atas kesehatan, pendidikan, hak perempuan dan anak, hak atas kependudukan, serta hak atas pekerjaan yang layak. Kanwil KemenHAM Kalsel berkomitmen mendampingi pemerintah daerah agar seluruh kabupaten/kota di Banua meraih predikat Peduli HAM secara paripurna.</p><p>Hasil verifikasi ini nantinya dilaporkan secara terpusat ke Kementerian Hak Asasi Manusia Republik Indonesia sebagai acuan penganugerahan penghargaan Hari HAM Sedunia.</p>',
+    published_at: '2026-09-10T11:00:00.000Z',
+  },
 ]
 
