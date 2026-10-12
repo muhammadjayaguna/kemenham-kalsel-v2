@@ -10,6 +10,8 @@ import {
   BeritaPublikasi,
   GaleriKegiatan,
   DEFAULT_INITIAL_NEWS,
+  PengumumanMarquee,
+  DEFAULT_MARQUEE_ITEMS,
 } from '@/lib/supabase'
 import RichTextEditor from '@/components/RichTextEditor'
 import {
@@ -52,6 +54,10 @@ import {
   Check,
   Smartphone,
   Monitor,
+  Megaphone,
+  ArrowUp,
+  ArrowDown,
+  Edit2,
 } from 'lucide-react'
 
 const generateSlug = (text: string) => {
@@ -226,6 +232,12 @@ export default function AdminDashboardPage() {
   const [messages, setMessages] = useState<PesanKontak[]>([])
   const [news, setNews] = useState<BeritaPublikasi[]>([])
   const [galleries, setGalleries] = useState<GaleriKegiatan[]>([])
+  const [marqueeItems, setMarqueeItems] = useState<PengumumanMarquee[]>([])
+  const [marqueeText, setMarqueeText] = useState('')
+  const [marqueeIsActive, setMarqueeIsActive] = useState(true)
+  const [editingMarqueeId, setEditingMarqueeId] = useState<string | null>(null)
+  const [isSavingMarquee, setIsSavingMarquee] = useState(false)
+  const [marqueeSuccessMsg, setMarqueeSuccessMsg] = useState('')
 
   // Editor State for "Tambah / Edit Pos Berita"
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null)
@@ -451,9 +463,184 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
       if (!gErr && gData) {
         setGalleries(gData)
       }
+
+      // 5. Fetch Running Text / Marquee from Supabase & Local Storage
+      let marqueeList: PengumumanMarquee[] = []
+      try {
+        const { data: mqData, error: mqErr } = await supabase
+          .from('pengumuman_marquee')
+          .select('*')
+          .order('urutan', { ascending: true })
+
+        if (!mqErr && mqData && mqData.length > 0) {
+          marqueeList = mqData
+        }
+      } catch (e) {}
+
+      if (marqueeList.length === 0) {
+        try {
+          const cachedMq = localStorage.getItem('kemenham_marquee_admin_items')
+          if (cachedMq) {
+            const parsed = JSON.parse(cachedMq)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              marqueeList = parsed
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (marqueeList.length === 0) {
+        marqueeList = DEFAULT_MARQUEE_ITEMS.map((text, idx) => ({
+          id: `mq-default-${idx + 1}`,
+          teks: text,
+          urutan: idx + 1,
+          is_active: true,
+        }))
+        try {
+          localStorage.setItem('kemenham_marquee_admin_items', JSON.stringify(marqueeList))
+          localStorage.setItem('kemenham_marquee_items', JSON.stringify(DEFAULT_MARQUEE_ITEMS))
+        } catch (e) {}
+      }
+
+      setMarqueeItems(marqueeList)
     } catch (error) {
       console.log('Error fetching Supabase data:', error)
     }
+  }
+
+  // Helper sinkronisasi Marquee ke Cache & Supabase
+  const syncMarqueeData = async (updatedList: PengumumanMarquee[]) => {
+    setMarqueeItems(updatedList)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('kemenham_marquee_admin_items', JSON.stringify(updatedList))
+        const activeTexts = updatedList.filter((i) => i.is_active).map((i) => i.teks)
+        localStorage.setItem('kemenham_marquee_items', JSON.stringify(activeTexts))
+        window.dispatchEvent(new Event('marquee-updated'))
+      } catch (e) {}
+    }
+
+    try {
+      for (const item of updatedList) {
+        if (item.id && !item.id.startsWith('mq-')) {
+          await supabase.from('pengumuman_marquee').upsert({
+            id: item.id,
+            teks: item.teks,
+            urutan: item.urutan,
+            is_active: item.is_active,
+          })
+        } else {
+          const { data } = await supabase
+            .from('pengumuman_marquee')
+            .insert({
+              teks: item.teks,
+              urutan: item.urutan,
+              is_active: item.is_active,
+            })
+            .select()
+          if (data && data[0]) {
+            item.id = data[0].id
+          }
+        }
+      }
+    } catch (err) {}
+  }
+
+  // Simpan / Perbarui Teks Running Text
+  const handleSaveMarquee = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!marqueeText.trim()) return
+
+    setIsSavingMarquee(true)
+    let updated: PengumumanMarquee[] = []
+
+    if (editingMarqueeId) {
+      updated = marqueeItems.map((item) =>
+        item.id === editingMarqueeId
+          ? { ...item, teks: marqueeText.trim(), is_active: marqueeIsActive }
+          : item
+      )
+      setEditingMarqueeId(null)
+    } else {
+      const newEntry: PengumumanMarquee = {
+        id: `mq-${Date.now()}`,
+        teks: marqueeText.trim(),
+        urutan: marqueeItems.length + 1,
+        is_active: marqueeIsActive,
+      }
+      updated = [...marqueeItems, newEntry]
+    }
+
+    setMarqueeText('')
+    setMarqueeIsActive(true)
+    await syncMarqueeData(updated)
+    setIsSavingMarquee(false)
+    setMarqueeSuccessMsg('Pengumuman running text berhasil disimpan dan diperbarui di website publik!')
+    setTimeout(() => setMarqueeSuccessMsg(''), 4000)
+  }
+
+  // Toggle Aktif / Nonaktif Marquee
+  const handleToggleMarquee = async (id: string) => {
+    const updated = marqueeItems.map((item) =>
+      item.id === id ? { ...item, is_active: !item.is_active } : item
+    )
+    await syncMarqueeData(updated)
+    try {
+      const found = updated.find((i) => i.id === id)
+      if (found && found.id && !found.id.startsWith('mq-')) {
+        await supabase
+          .from('pengumuman_marquee')
+          .update({ is_active: found.is_active })
+          .eq('id', found.id)
+      }
+    } catch (e) {}
+  }
+
+  // Hapus Marquee Item
+  const handleDeleteMarquee = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus teks pengumuman ini?')) return
+    const updated = marqueeItems.filter((item) => item.id !== id)
+    await syncMarqueeData(updated)
+    try {
+      if (!id.startsWith('mq-')) {
+        await supabase.from('pengumuman_marquee').delete().eq('id', id)
+      }
+    } catch (e) {}
+    setMarqueeSuccessMsg('Pengumuman berhasil dihapus.')
+    setTimeout(() => setMarqueeSuccessMsg(''), 3000)
+  }
+
+  // Geser Posisi Urutan Pengumuman
+  const handleMoveMarquee = async (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === marqueeItems.length - 1)
+    ) {
+      return
+    }
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    const copy = [...marqueeItems]
+    const temp = copy[index]
+    copy[index] = copy[targetIndex]
+    copy[targetIndex] = temp
+
+    const reordered = copy.map((item, idx) => ({ ...item, urutan: idx + 1 }))
+    await syncMarqueeData(reordered)
+  }
+
+  // Reset ke Pengumuman Standar
+  const handleResetMarquee = async () => {
+    if (!confirm('Kembalikan running text ke 4 pengumuman standar Kanwil KemenHAM Kalsel?')) return
+    const defaultList: PengumumanMarquee[] = DEFAULT_MARQUEE_ITEMS.map((text, idx) => ({
+      id: `mq-default-${idx + 1}`,
+      teks: text,
+      urutan: idx + 1,
+      is_active: true,
+    }))
+    await syncMarqueeData(defaultList)
+    setMarqueeSuccessMsg('Running text berhasil dikembalikan ke format standar.')
+    setTimeout(() => setMarqueeSuccessMsg(''), 3000)
   }
 
   // Handle Save / Publish News Post
@@ -1210,6 +1397,47 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                   }}
                 >
                   {messages.length}
+                </span>
+              </button>
+
+              {/* Menu: Running Text / Marquee Info */}
+              <button
+                onClick={() => {
+                  setCurrentView('marquee')
+                  setSidebarOpenMobile(false)
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 16px',
+                  color: currentView === 'marquee' ? '#ffffff' : '#c3c4c7',
+                  background: currentView === 'marquee' ? '#2271b1' : 'transparent',
+                  border: 'none',
+                  textAlign: 'left',
+                  fontSize: '13px',
+                  fontWeight: currentView === 'marquee' ? 600 : 400,
+                  cursor: 'pointer',
+                  borderLeft: currentView === 'marquee' ? '4px solid var(--gold)' : '4px solid transparent',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Megaphone size={16} />
+                  <span>Running Text Info</span>
+                </div>
+                <span
+                  style={{
+                    background: 'rgba(212,175,55,0.25)',
+                    color: 'var(--gold)',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    padding: '2px 7px',
+                    borderRadius: '10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {marqueeItems.filter((i) => i.is_active).length} Aktif
                 </span>
               </button>
 
@@ -2895,7 +3123,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                   <div className="info-table-row">
                     <div className="info-table-label">Tabel Aktif</div>
                     <div className="info-table-value">
-                      `pengaduan`, `pesan_kontak`, `berita_publikasi`, `galeri_kegiatan`
+                      `pengaduan`, `pesan_kontak`, `berita_publikasi`, `galeri_kegiatan`, `pengumuman_marquee`
                     </div>
                   </div>
                 </div>
@@ -2919,6 +3147,566 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                 >
                   Buka Supabase SQL Console <ExternalLink size={13} />
                 </a>
+              </div>
+            </div>
+          )}
+
+          {/* ===================================================================
+              VIEW 9: KELOLA RUNNING TEXT (MARQUEE PENGUMUMAN)
+              =================================================================== */}
+          {currentView === 'marquee' && (
+            <div style={{ maxWidth: '1000px' }}>
+              {/* Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginBottom: '20px',
+                }}
+              >
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1d2327', margin: '0 0 6px' }}>
+                    📢 Kelola Running Text & Bilah Pengumuman
+                  </h1>
+                  <p style={{ fontSize: '13px', color: '#646970', margin: 0 }}>
+                    Atur pesan informasi berjalan di bilah atas (*Marquee Bar*) website publik secara langsung.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={handleResetMarquee}
+                    style={{
+                      background: '#f0f0f1',
+                      color: '#2c3338',
+                      border: '1px solid #c3c4c7',
+                      padding: '8px 14px',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                    title="Kembalikan ke pengumuman standar"
+                  >
+                    <RefreshCw size={14} /> Reset ke Standar
+                  </button>
+                </div>
+              </div>
+
+              {/* Alert Sukses */}
+              {marqueeSuccessMsg && (
+                <div
+                  style={{
+                    background: '#ecfdf5',
+                    border: '1px solid #10b981',
+                    borderRadius: '6px',
+                    padding: '12px 16px',
+                    marginBottom: '20px',
+                    color: '#065f46',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#10b981" />
+                  <span>{marqueeSuccessMsg}</span>
+                </div>
+              )}
+
+              {/* Live Preview Box */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #0c2340 0%, #123c69 100%)',
+                  borderRadius: '8px',
+                  padding: '16px 20px',
+                  color: '#ffffff',
+                  marginBottom: '24px',
+                  boxShadow: '0 4px 16px rgba(18,60,105,0.15)',
+                  border: '1px solid rgba(212,175,55,0.3)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: 'var(--gold)',
+                      letterSpacing: '0.05em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    <Megaphone size={14} /> Tampilan Live di Website Publik
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      background: 'rgba(255,255,255,0.12)',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      color: '#e2e8f0',
+                    }}
+                  >
+                    {marqueeItems.filter((i) => i.is_active).length} dari {marqueeItems.length} Pengumuman Aktif
+                  </span>
+                </div>
+
+                {/* Simulasi Tampilan Bar */}
+                <div
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: '6px',
+                    padding: '10px 14px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                >
+                  <div
+                    style={{
+                      background: 'var(--gold)',
+                      color: 'var(--navy)',
+                      fontWeight: 900,
+                      fontSize: '11px',
+                      padding: '2px 7px',
+                      borderRadius: '3px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    INFO
+                  </div>
+                  <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' }}>
+                    {marqueeItems.filter((i) => i.is_active).length > 0 ? (
+                      <div style={{ display: 'inline-flex', gap: '20px', fontSize: '13px', color: '#f8fafc' }}>
+                        {marqueeItems
+                          .filter((i) => i.is_active)
+                          .map((item, idx) => (
+                            <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              <span>{item.teks}</span>
+                              <span style={{ color: 'var(--gold)' }}>•</span>
+                            </span>
+                          ))}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic' }}>
+                        (Tidak ada pengumuman yang aktif saat ini)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Grid: Form (Left) & List (Right) */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                  gap: '24px',
+                  alignItems: 'start',
+                }}
+              >
+                {/* FORM TAMBAH / EDIT PENGUMUMAN */}
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #c3c4c7',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px',
+                      borderBottom: '1px solid #f0f0f1',
+                      paddingBottom: '12px',
+                    }}
+                  >
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1d2327' }}>
+                      {editingMarqueeId ? '✏️ Edit Teks Pengumuman' : '➕ Tambah Pengumuman Baru'}
+                    </h3>
+                    {editingMarqueeId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingMarqueeId(null)
+                          setMarqueeText('')
+                          setMarqueeIsActive(true)
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#d63638',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Batal Edit
+                      </button>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSaveMarquee}>
+                    <div style={{ marginBottom: '14px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#2c3338',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        Teks Pengumuman:
+                      </label>
+                      <textarea
+                        value={marqueeText}
+                        onChange={(e) => setMarqueeText(e.target.value)}
+                        placeholder="Ketik teks pengumuman penting di sini..."
+                        rows={3}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #8c8f94',
+                          borderRadius: '4px',
+                          fontSize: '13px',
+                          color: '#2c3338',
+                          boxSizing: 'border-box',
+                          outline: 'none',
+                          fontFamily: 'inherit',
+                          resize: 'vertical',
+                        }}
+                      />
+                    </div>
+
+                    {/* Quick Emojis Selector */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <span
+                        style={{
+                          display: 'block',
+                          fontSize: '11px',
+                          color: '#646970',
+                          marginBottom: '6px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Sisipkan Ikon Cepat:
+                      </span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {[
+                          { emoji: '📢', label: 'Pengumuman' },
+                          { emoji: '🏛️', label: 'Instansi' },
+                          { emoji: '📋', label: 'Pendaftaran' },
+                          { emoji: '🤝', label: 'Kerjasama' },
+                          { emoji: '⚖️', label: 'Hukum' },
+                          { emoji: 'ℹ️', label: 'Informasi' },
+                          { emoji: '🚨', label: 'Penting' },
+                        ].map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              if (!marqueeText.includes(item.emoji)) {
+                                setMarqueeText(`${item.emoji} ${marqueeText}`)
+                              }
+                            }}
+                            style={{
+                              background: '#f6f7f7',
+                              border: '1px solid #dcdcde',
+                              borderRadius: '4px',
+                              padding: '3px 8px',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              color: '#2c3338',
+                            }}
+                          >
+                            {item.emoji} {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Status Aktif Switch */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '20px',
+                        background: '#f8fafc',
+                        padding: '10px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e2e8f0',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        id="marquee_active"
+                        checked={marqueeIsActive}
+                        onChange={(e) => setMarqueeIsActive(e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      <label
+                        htmlFor="marquee_active"
+                        style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', cursor: 'pointer' }}
+                      >
+                        Tampilkan di Bilah Berjalan Website Publik (Status Aktif)
+                      </label>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingMarquee || !marqueeText.trim()}
+                      style={{
+                        background: '#2271b1',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '10px 18px',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: isSavingMarquee || !marqueeText.trim() ? 'not-allowed' : 'pointer',
+                        opacity: isSavingMarquee || !marqueeText.trim() ? 0.6 : 1,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        width: '100%',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Save size={15} />
+                      {editingMarqueeId ? 'Simpan Perubahan' : 'Tambah ke Running Text'}
+                    </button>
+                  </form>
+                </div>
+
+                {/* DAFTAR PENGUMUMAN BERJALAN */}
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #c3c4c7',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px',
+                      borderBottom: '1px solid #f0f0f1',
+                      paddingBottom: '12px',
+                    }}
+                  >
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1d2327' }}>
+                      📋 Daftar Teks Berjalan ({marqueeItems.length})
+                    </h3>
+                    <span style={{ fontSize: '11px', color: '#646970' }}>Gunakan panah untuk atur urutan</span>
+                  </div>
+
+                  {marqueeItems.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '30px 10px', color: '#646970', fontSize: '13px' }}>
+                      Belum ada teks pengumuman. Tambahkan melalui formulir di sebelah kiri.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {marqueeItems.map((item, index) => (
+                        <div
+                          key={item.id || index}
+                          style={{
+                            border: '1px solid',
+                            borderColor: item.is_active ? '#cbd5e1' : '#e2e8f0',
+                            borderRadius: '6px',
+                            padding: '12px 14px',
+                            background: item.is_active ? '#ffffff' : '#f8fafc',
+                            opacity: item.is_active ? 1 : 0.65,
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                            {/* Order indicator */}
+                            <span
+                              style={{
+                                background: '#f1f5f9',
+                                color: '#475569',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                flexShrink: 0,
+                                marginTop: '2px',
+                              }}
+                            >
+                              #{index + 1}
+                            </span>
+
+                            {/* Text */}
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '13px',
+                                color: '#1e293b',
+                                lineHeight: 1.5,
+                                flex: 1,
+                                fontWeight: item.is_active ? 500 : 400,
+                              }}
+                            >
+                              {item.teks}
+                            </p>
+                          </div>
+
+                          {/* Footer Actions */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginTop: '10px',
+                              paddingTop: '8px',
+                              borderTop: '1px dashed #f1f5f9',
+                            }}
+                          >
+                            {/* Toggle Active Button */}
+                            <button
+                              type="button"
+                              onClick={() => item.id && handleToggleMarquee(item.id)}
+                              style={{
+                                background: item.is_active ? '#ecfdf5' : '#f1f5f9',
+                                color: item.is_active ? '#059669' : '#64748b',
+                                border: '1px solid',
+                                borderColor: item.is_active ? '#a7f3d0' : '#cbd5e1',
+                                padding: '3px 9px',
+                                borderRadius: '12px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: item.is_active ? '#10b981' : '#94a3b8',
+                                }}
+                              />
+                              {item.is_active ? 'Aktif' : 'Nonaktif'}
+                            </button>
+
+                            {/* Control Actions: Up, Down, Edit, Delete */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <button
+                                type="button"
+                                disabled={index === 0}
+                                onClick={() => handleMoveMarquee(index, 'up')}
+                                style={{
+                                  background: '#f8fafc',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '4px',
+                                  padding: '4px 6px',
+                                  color: index === 0 ? '#cbd5e1' : '#475569',
+                                  cursor: index === 0 ? 'not-allowed' : 'pointer',
+                                }}
+                                title="Pindah ke Atas"
+                              >
+                                <ArrowUp size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === marqueeItems.length - 1}
+                                onClick={() => handleMoveMarquee(index, 'down')}
+                                style={{
+                                  background: '#f8fafc',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '4px',
+                                  padding: '4px 6px',
+                                  color: index === marqueeItems.length - 1 ? '#cbd5e1' : '#475569',
+                                  cursor: index === marqueeItems.length - 1 ? 'not-allowed' : 'pointer',
+                                }}
+                                title="Pindah ke Bawah"
+                              >
+                                <ArrowDown size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingMarqueeId(item.id || null)
+                                  setMarqueeText(item.teks)
+                                  setMarqueeIsActive(Boolean(item.is_active))
+                                }}
+                                style={{
+                                  background: '#f0f9ff',
+                                  border: '1px solid #bae6fd',
+                                  borderRadius: '4px',
+                                  padding: '4px 8px',
+                                  color: '#0284c7',
+                                  cursor: 'pointer',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                }}
+                                title="Edit Pengumuman"
+                              >
+                                <Edit2 size={12} /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => item.id && handleDeleteMarquee(item.id)}
+                                style={{
+                                  background: '#fff1f2',
+                                  border: '1px solid #fecdd3',
+                                  borderRadius: '4px',
+                                  padding: '4px 8px',
+                                  color: '#e11d48',
+                                  cursor: 'pointer',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                }}
+                                title="Hapus Pengumuman"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -3117,7 +3905,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                 color: '#ffffff',
                 padding: '16px 20px',
                 display: 'flex',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 alignItems: 'center',
               }}
             >

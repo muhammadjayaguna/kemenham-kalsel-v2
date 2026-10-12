@@ -62,6 +62,21 @@ export interface GaleriKegiatan {
   created_at?: string
 }
 
+export interface PengumumanMarquee {
+  id?: string
+  teks: string
+  urutan?: number
+  is_active?: boolean
+  created_at?: string
+}
+
+export const DEFAULT_MARQUEE_ITEMS: string[] = [
+  '📢 Layanan Pengaduan HAM Online Kanwil KemenHAM Kalsel tersedia 24/7 — Gratis dan Rahasia',
+  '🏛️ Zona Integritas Menuju Wilayah Bebas dari Korupsi (WBK) — Kanwil KemenHAM Kalsel',
+  '📋 Pendaftaran Kabupaten/Kota Peduli HAM (KKHAM) Tahun 2026 telah dibuka',
+  '🤝 Sosialisasi Desa Sadar HAM di 13 Kabupaten/Kota se-Kalimantan Selatan',
+]
+
 export const DEFAULT_INITIAL_NEWS: BeritaPublikasi[] = [
   {
     id: 'news-init-1',

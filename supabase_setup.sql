@@ -61,6 +61,15 @@ CREATE TABLE IF NOT EXISTS public.galeri_kegiatan (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 5. TABEL RUNNING TEXT PENGUMUMAN MARQUEE (pengumuman_marquee)
+CREATE TABLE IF NOT EXISTS public.pengumuman_marquee (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    teks TEXT NOT NULL,
+    urutan INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- =========================================================================
 -- IZIN ROW LEVEL SECURITY (RLS) - AGAR DAPAT DI-INSERT DARI DASHBOARD ADMIN
 -- =========================================================================
@@ -70,6 +79,7 @@ ALTER TABLE public.berita_publikasi ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pengaduan ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pesan_kontak ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.galeri_kegiatan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pengumuman_marquee ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if any to prevent conflicts
 DROP POLICY IF EXISTS "Public Select Berita" ON public.berita_publikasi;
@@ -88,6 +98,11 @@ DROP POLICY IF EXISTS "Public Update Pesan" ON public.pesan_kontak;
 DROP POLICY IF EXISTS "Public Select Galeri" ON public.galeri_kegiatan;
 DROP POLICY IF EXISTS "Public Insert Galeri" ON public.galeri_kegiatan;
 
+DROP POLICY IF EXISTS "Public Select Marquee" ON public.pengumuman_marquee;
+DROP POLICY IF EXISTS "Public Insert Marquee" ON public.pengumuman_marquee;
+DROP POLICY IF EXISTS "Public Update Marquee" ON public.pengumuman_marquee;
+DROP POLICY IF EXISTS "Public Delete Marquee" ON public.pengumuman_marquee;
+
 -- Create Permissive Policies for Web & Admin App
 CREATE POLICY "Public Select Berita" ON public.berita_publikasi FOR SELECT USING (true);
 CREATE POLICY "Public Insert Berita" ON public.berita_publikasi FOR INSERT WITH CHECK (true);
@@ -105,9 +120,22 @@ CREATE POLICY "Public Update Pesan" ON public.pesan_kontak FOR UPDATE USING (tru
 CREATE POLICY "Public Select Galeri" ON public.galeri_kegiatan FOR SELECT USING (true);
 CREATE POLICY "Public Insert Galeri" ON public.galeri_kegiatan FOR INSERT WITH CHECK (true);
 
+CREATE POLICY "Public Select Marquee" ON public.pengumuman_marquee FOR SELECT USING (true);
+CREATE POLICY "Public Insert Marquee" ON public.pengumuman_marquee FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Marquee" ON public.pengumuman_marquee FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Marquee" ON public.pengumuman_marquee FOR DELETE USING (true);
+
 -- =========================================================================
--- INITIAL SEED DATA (DATA AWAL WARMA BERITA & GALERI)
+-- INITIAL SEED DATA (DATA AWAL WARMA BERITA, GALERI & RUNNING TEXT)
 -- =========================================================================
+
+INSERT INTO public.pengumuman_marquee (teks, urutan, is_active)
+VALUES 
+    ('📢 Layanan Pengaduan HAM Online Kanwil KemenHAM Kalsel tersedia 24/7 — Gratis dan Rahasia', 1, true),
+    ('🏛️ Zona Integritas Menuju Wilayah Bebas dari Korupsi (WBK) — Kanwil KemenHAM Kalsel', 2, true),
+    ('📋 Pendaftaran Kabupaten/Kota Peduli HAM (KKHAM) Tahun 2026 telah dibuka', 3, true),
+    ('🤝 Sosialisasi Desa Sadar HAM di 13 Kabupaten/Kota se-Kalimantan Selatan', 4, true)
+ON CONFLICT DO NOTHING;
 
 INSERT INTO public.berita_publikasi (judul, kategori, penulis, image_url, ringkasan, konten, published_at)
 VALUES 

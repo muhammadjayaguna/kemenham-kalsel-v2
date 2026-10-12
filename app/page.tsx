@@ -429,7 +429,7 @@ export default function HomePage() {
                   textDecoration: 'none',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                 }}
               >
                 <div>
