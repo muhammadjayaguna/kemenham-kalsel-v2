@@ -50,12 +50,12 @@ export default function MascotFloat() {
     >
       {/* Tooltip Dialog */}
       <div
+        className="relative"
         style={{
           background: '#ffffff',
           color: 'var(--navy)',
           padding: '12px 16px',
           borderRadius: '16px',
-          borderBottomLeftRadius: '4px',
           boxShadow: '0 8px 24px rgba(18,60,105,0.15)',
           border: '2px solid var(--gold)',
           fontSize: '13px',
@@ -71,6 +71,11 @@ export default function MascotFloat() {
         <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 500, display: 'block', marginTop: '4px' }}>
           Ada yang bisa saya bantu?
         </span>
+        {/* Pointer ke arah maskot */}
+        <div 
+          className="absolute -right-2 bottom-3.5 w-3.5 h-3.5 bg-white border-t-2 border-r-2 transform rotate-45"
+          style={{ borderColor: 'var(--gold)' }}
+        />
       </div>
 
       {/* Maskot Image */}
