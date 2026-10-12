@@ -88,22 +88,24 @@ export default function MascotFloat() {
         }}
         title="Maskot KemenHAM Kalsel"
       >
-        {/* Pastikan gambar maskot.png sudah ada di folder public */}
-        <img
-          src="/bergerak.gif"
-          alt="Maskot KemenHAM Kanwil Kalsel"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            objectPosition: 'bottom',
-          }}
-          onError={(e) => {
-            // Fallback sementara jika gambar belum diupload
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
+        <picture>
+          <source srcSet="/bergerak.webp" type="image/webp" />
+          <img
+            src="/bergerak.gif"
+            alt="Maskot KemenHAM Kanwil Kalsel"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'bottom',
+            }}
+            onError={(e) => {
+              // Fallback sementara jika gambar belum diupload
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+        </picture>
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes bounce-slow {
             0%, 100% { transform: translateY(0); }

@@ -77,18 +77,20 @@ export default function WhatsAppFloat() {
           }
         }}
       >
-        <img
-          src="/bergerak.gif"
-          alt="Maskot SIPeHAM Kemenkumham"
-          className="absolute drop-shadow-[0_10px_15px_rgba(11,26,44,0.25)]"
-          style={{ 
-            width: '100px',
-            bottom: '0px', 
-            right: '20px',
-            objectFit: 'contain',
-            mixBlendMode: 'darken'
-          }}
-        />
+        <picture>
+          <source srcSet="/bergerak.webp" type="image/webp" />
+          <img
+            src="/bergerak.gif"
+            alt="Maskot SIPeHAM Kemenkumham"
+            className="absolute drop-shadow-[0_10px_15px_rgba(11,26,44,0.25)]"
+            style={{ 
+              width: '100px',
+              bottom: '0px', 
+              right: '20px',
+              objectFit: 'contain',
+            }}
+          />
+        </picture>
       </a>
     </div>
   )
