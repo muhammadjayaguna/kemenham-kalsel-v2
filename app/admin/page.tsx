@@ -198,7 +198,24 @@ export default function AdminDashboardPage() {
   // Navigation State
   // 'dashboard' | 'posts_all' | 'posts_new' | 'gallery_all' | 'gallery_new' | 'pengaduan' | 'pesan' | 'settings'
   const [currentView, setCurrentView] = useState<string>('posts_new')
-  const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    // Di layar mobile (< 768px), default sidebar tertutup
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false)
+    }
+  }, [])
+
+  const setSidebarOpenMobile = (open: boolean) => {
+    if (!open) {
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setSidebarOpen(false)
+      }
+    } else {
+      setSidebarOpen(true)
+    }
+  }
   const [openSubmenu, setOpenSubmenu] = useState<{ [key: string]: boolean }>({
     posts: true,
     gallery: false,
@@ -739,8 +756,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
-            onClick={() => setSidebarOpenMobile(!sidebarOpenMobile)}
-            className="md:hidden"
+            onClick={() => setSidebarOpen((prev) => !prev)}
             style={{
               background: 'none',
               border: 'none',
@@ -748,10 +764,13 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              padding: '4px',
+              padding: '6px',
+              borderRadius: '4px',
             }}
+            title={sidebarOpen ? 'Tutup Menu' : 'Buka Menu'}
+            aria-label={sidebarOpen ? 'Tutup Menu' : 'Buka Menu'}
           >
-            <Menu size={18} />
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
           {/* WordPress / KemenHAM CMS Brand Badge */}
@@ -867,19 +886,28 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
         {/* =====================================================================
             LEFT WORDPRESS SIDEBAR
             ===================================================================== */}
+        {/* Mobile Backdrop Overlay untuk menutup sidebar saat area luar diklik */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/60 z-40 transition-opacity"
+            aria-hidden="true"
+          />
+        )}
+
         <aside
           style={{
             width: '230px',
             background: '#1d2327',
             color: '#c3c4c7',
             flexShrink: 0,
-            display: 'flex',
+            display: sidebarOpen ? 'flex' : 'none',
             flexDirection: 'column',
             justifyContent: 'space-between',
             borderRight: '1px solid #2c3338',
             minHeight: 'calc(100vh - 46px)',
           }}
-          className={`${sidebarOpenMobile ? 'fixed inset-y-0 left-0 z-50 pt-12' : 'hidden md:flex'}`}
+          className={`${sidebarOpen ? 'fixed md:static inset-y-0 left-0 z-50 pt-12 md:pt-0' : 'hidden'}`}
         >
           <div>
             <div style={{ padding: '8px 0' }}>
