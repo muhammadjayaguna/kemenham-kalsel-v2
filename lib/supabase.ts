@@ -4,7 +4,7 @@ const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://igzcaatgzpjywpoxgxob.supabase.co'
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnemNhYXRnenBqeXdwb3hneG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTc5NDgsImV4cCI6MjEwNTQ3Mzk0OH0.eWW-lK7v6a_-gLp_Y1p6qO9Q6G5Z2vX_5rW'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnemNhYXRnenBqeXdwb3hneG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MTQ5OTMsImV4cCI6MjEwNTE5MDk5M30.Ja5-SFr4aIhBAIMYPC0xd1BXQ3TWI76yQt2zN39pLH4'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
