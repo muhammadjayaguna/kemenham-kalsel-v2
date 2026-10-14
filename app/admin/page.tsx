@@ -21,7 +21,6 @@ import {
   Image as ImageIcon,
   ShieldAlert,
   MessageSquare,
-  Settings,
   LogOut,
   ExternalLink,
   Eye,
@@ -1441,31 +1440,6 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                 </span>
               </button>
 
-              {/* Menu 6: Pengaturan & Supabase */}
-              <button
-                onClick={() => {
-                  setCurrentView('settings')
-                  setSidebarOpenMobile(false)
-                }}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 16px',
-                  color: currentView === 'settings' ? '#ffffff' : '#c3c4c7',
-                  background: currentView === 'settings' ? '#2271b1' : 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  fontSize: '13px',
-                  fontWeight: currentView === 'settings' ? 600 : 400,
-                  cursor: 'pointer',
-                  borderLeft: currentView === 'settings' ? '4px solid var(--gold)' : '4px solid transparent',
-                }}
-              >
-                <Settings size={16} />
-                <span>Pengaturan & SQL</span>
-              </button>
             </div>
           </div>
 
@@ -3084,72 +3058,6 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
             </div>
           )}
 
-          {/* ===================================================================
-              VIEW 8: PENGATURAN & SUPABASE SQL
-              =================================================================== */}
-          {currentView === 'settings' && (
-            <div style={{ maxWidth: '840px' }}>
-              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1d2327', margin: '0 0 6px' }}>
-                ⚙️ Status Konfigurasi Backend & Database Supabase
-              </h1>
-              <p style={{ fontSize: '13px', color: '#646970', margin: '0 0 20px' }}>
-                Informasi endpoint Supabase dan kredensial administrasi Kantor Wilayah Kementerian HAM Kalsel.
-              </p>
-
-              <div
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #c3c4c7',
-                  borderRadius: '6px',
-                  padding: '24px',
-                  marginBottom: '20px',
-                }}
-              >
-                <div className="info-table-box" style={{ marginBottom: '20px' }}>
-                  <div className="info-table-row">
-                    <div className="info-table-label">Status Koneksi Supabase</div>
-                    <div className="info-table-value" style={{ color: 'var(--blue)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <CheckCircle2 size={16} /> Online & Terhubung
-                    </div>
-                  </div>
-                  <div className="info-table-row">
-                    <div className="info-table-label">Project URL</div>
-                    <div className="info-table-value">https://igzcaatgzpjywpoxgxob.supabase.co</div>
-                  </div>
-                  <div className="info-table-row">
-                    <div className="info-table-label">Akun Administrator</div>
-                    <div className="info-table-value">admin@kemenhamkalsel.com</div>
-                  </div>
-                  <div className="info-table-row">
-                    <div className="info-table-label">Tabel Aktif</div>
-                    <div className="info-table-value">
-                      `pengaduan`, `pesan_kontak`, `berita_publikasi`, `galeri_kegiatan`, `pengumuman_marquee`
-                    </div>
-                  </div>
-                </div>
-
-                <a
-                  href="https://supabase.com/dashboard/project/igzcaatgzpjywpoxgxob/sql/new"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: '#2271b1',
-                    color: '#ffffff',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    textDecoration: 'none',
-                  }}
-                >
-                  Buka Supabase SQL Console <ExternalLink size={13} />
-                </a>
-              </div>
-            </div>
-          )}
 
           {/* ===================================================================
               VIEW 9: KELOLA RUNNING TEXT (MARQUEE PENGUMUMAN)
