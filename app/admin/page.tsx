@@ -70,7 +70,15 @@ const generateSlug = (text: string) => {
 
 const applyKemenhamP5hamWatermark = (
   imageSrc: string,
-  position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' = 'top-right'
+  position:
+    | 'top'
+    | 'bottom'
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'left-only'
+    | 'right-only' = 'top'
 ): Promise<string> => {
   return new Promise((resolve) => {
     if (!imageSrc) return resolve(imageSrc)
@@ -90,99 +98,128 @@ const applyKemenhamP5hamWatermark = (
         canvas.width = w
         canvas.height = h
 
-        // 1. Draw base image
+        // 1. Gambar foto utama
         ctx.drawImage(img, 0, 0, w, h)
 
-        // 2. Load Logo KemenHAM
-        const logo = new Image()
-        logo.crossOrigin = 'anonymous'
-        logo.src =
-          'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo_Kementerian_Hak_Asasi_Manusia_Republik_Indonesia_%282024%29_%28cropped%29-GIvJ19tibTKAvlhbhMO87XGKCaSlO7.png'
+        // 2. Muat Logo Kiri (Logo Kanwil Kalsel) & Logo Kanan (P5HAM)
+        const logoLeft = new Image()
+        logoLeft.crossOrigin = 'anonymous'
+        logoLeft.src = '/logo-kanwil-transparan.png'
 
-        const drawWatermarkOverlay = () => {
-          const logoWidth = Math.max(44, Math.round(w * 0.085))
-          const logoHeight =
-            logo.naturalHeight && logo.naturalWidth
-              ? Math.round(logoWidth * (logo.naturalHeight / logo.naturalWidth))
-              : Math.round(logoWidth * 1.2)
+        const logoRight = new Image()
+        logoRight.crossOrigin = 'anonymous'
+        logoRight.src = '/p5ham-transparan.png'
 
-          const margin = Math.max(14, Math.round(w * 0.02))
-          const badgeTextWidth = Math.max(170, Math.round(w * 0.22))
-          const badgeWidth = logoWidth + badgeTextWidth
-          const badgeHeight = Math.max(logoHeight + 14, 54)
-
-          let x = w - badgeWidth - margin
-          let y = margin
-
-          if (position === 'top-left') {
-            x = margin
-            y = margin
-          } else if (position === 'bottom-right') {
-            x = w - badgeWidth - margin
-            y = h - badgeHeight - margin
-          } else if (position === 'bottom-left') {
-            x = margin
-            y = h - badgeHeight - margin
+        let loadedCount = 0
+        const handleDone = () => {
+          loadedCount++
+          if (loadedCount >= 2) {
+            drawWatermarkOverlay()
           }
-
-          // Glassmorphism Backdrop Pill
-          ctx.save()
-          ctx.fillStyle = 'rgba(18, 60, 105, 0.92)' // Deep Navy
-          ctx.shadowColor = 'rgba(0,0,0,0.5)'
-          ctx.shadowBlur = 10
-
-          const rx = x
-          const ry = y
-          const rw = badgeWidth
-          const rh = badgeHeight
-          const radius = 10
-
-          ctx.beginPath()
-          ctx.moveTo(rx + radius, ry)
-          ctx.lineTo(rx + rw - radius, ry)
-          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius)
-          ctx.lineTo(rx + rw, ry + rh - radius)
-          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - radius, ry + rh)
-          ctx.lineTo(rx + radius, ry + rh)
-          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - radius)
-          ctx.lineTo(rx, ry + radius)
-          ctx.quadraticCurveTo(rx, ry, rx + radius, ry)
-          ctx.closePath()
-          ctx.fill()
-
-          // Golden Border Line
-          ctx.strokeStyle = '#d4af37'
-          ctx.lineWidth = Math.max(1.5, Math.round(w * 0.002))
-          ctx.stroke()
-          ctx.restore()
-
-          // Draw Logo KemenHAM
-          const logoX = x + 10
-          const logoY = y + Math.round((badgeHeight - logoHeight) / 2)
-          if (logo.complete && logo.naturalWidth > 0) {
-            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight)
-          }
-
-          // Draw Text
-          const textX = logoX + logoWidth + 10
-          ctx.fillStyle = '#d4af37' // Royal Gold
-          const fontSizeHead = Math.max(11, Math.round(w * 0.015))
-          ctx.font = `bold ${fontSizeHead}px sans-serif`
-          ctx.fillText('KANWIL KEMENHAM KALSEL', textX, y + Math.round(badgeHeight * 0.42))
-
-          ctx.fillStyle = '#ffffff'
-          const fontSizeSub = Math.max(9, Math.round(w * 0.012))
-          ctx.font = `bold ${fontSizeSub}px sans-serif`
-          ctx.fillText('P5HAM • KEMENTERIAN HAM RI', textX, y + Math.round(badgeHeight * 0.74))
-
-          resolve(canvas.toDataURL('image/jpeg', 0.90))
         }
 
-        if (logo.complete && logo.naturalWidth > 0) {
+        logoLeft.onload = handleDone
+        logoLeft.onerror = () => {
+          logoLeft.src = '/logo-kanwil.jpeg'
+          logoLeft.onload = handleDone
+          logoLeft.onerror = handleDone
+        }
+
+        logoRight.onload = handleDone
+        logoRight.onerror = () => {
+          logoRight.src = '/p5ham.png'
+          logoRight.onload = handleDone
+          logoRight.onerror = handleDone
+        }
+
+        const drawWatermarkOverlay = () => {
+          const targetLogoH = Math.max(34, Math.min(Math.round(h * 0.08), Math.round(w * 0.055), 75))
+          const padX = Math.max(10, Math.round(targetLogoH * 0.22))
+          const padY = Math.max(6, Math.round(targetLogoH * 0.14))
+          const marginX = Math.max(14, Math.round(w * 0.025))
+          const marginY = Math.max(12, Math.round(h * 0.025))
+          const radius = Math.max(6, Math.round(targetLogoH * 0.16))
+
+          // Fungsi menggambar badge pill putih elegan berbingkai emas
+          const drawPillBadge = (x: number, y: number, pillW: number, pillH: number) => {
+            ctx.save()
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
+            ctx.shadowBlur = Math.max(8, Math.round(targetLogoH * 0.25))
+            ctx.shadowOffsetX = 0
+            ctx.shadowOffsetY = 3
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.96)'
+            ctx.beginPath()
+            ctx.moveTo(x + radius, y)
+            ctx.lineTo(x + pillW - radius, y)
+            ctx.quadraticCurveTo(x + pillW, y, x + pillW, y + radius)
+            ctx.lineTo(x + pillW, y + pillH - radius)
+            ctx.quadraticCurveTo(x + pillW, y + pillH, x + pillW - radius, y + pillH)
+            ctx.lineTo(x + radius, y + pillH)
+            ctx.quadraticCurveTo(x, y + pillH, x, y + pillH - radius)
+            ctx.lineTo(x, y + radius)
+            ctx.quadraticCurveTo(x, y, x + radius, y)
+            ctx.closePath()
+            ctx.fill()
+
+            // Garis bingkai Royal Gold
+            ctx.strokeStyle = '#d4af37'
+            ctx.lineWidth = Math.max(1.5, Math.round(w * 0.0015))
+            ctx.stroke()
+            ctx.restore()
+          }
+
+          // Hitung proporsi Logo Kiri (Logo Kanwil Kalsel: ~2.99:1)
+          const leftAspect =
+            logoLeft.naturalWidth && logoLeft.naturalHeight
+              ? logoLeft.naturalWidth / logoLeft.naturalHeight
+              : 2.99
+          const leftLogoW = Math.round(targetLogoH * leftAspect)
+          const leftPillW = leftLogoW + padX * 2
+          const leftPillH = targetLogoH + padY * 2
+
+          // Hitung proporsi Logo Kanan (Logo P5HAM: ~2.75:1)
+          const rightAspect =
+            logoRight.naturalWidth && logoRight.naturalHeight
+              ? logoRight.naturalWidth / logoRight.naturalHeight
+              : 2.75
+          const rightLogoW = Math.round(targetLogoH * rightAspect)
+          const rightPillW = rightLogoW + padX * 2
+          const rightPillH = targetLogoH + padY * 2
+
+          // Posisi vertikal
+          const isBottom =
+            position === 'bottom' || position === 'bottom-left' || position === 'bottom-right'
+          const yLeft = isBottom ? h - marginY - leftPillH : marginY
+          const yRight = isBottom ? h - marginY - rightPillH : marginY
+
+          const shouldDrawLeft = position !== 'right-only'
+          const shouldDrawRight = position !== 'left-only'
+
+          // 1. Gambar Logo Kanwil di KIRI
+          if (shouldDrawLeft && logoLeft.naturalWidth > 0) {
+            const xL = marginX
+            drawPillBadge(xL, yLeft, leftPillW, leftPillH)
+            ctx.drawImage(logoLeft, xL + padX, yLeft + padY, leftLogoW, targetLogoH)
+          }
+
+          // 2. Gambar Logo P5HAM di KANAN
+          if (shouldDrawRight && logoRight.naturalWidth > 0) {
+            const xR = w - marginX - rightPillW
+            drawPillBadge(xR, yRight, rightPillW, rightPillH)
+            ctx.drawImage(logoRight, xR + padX, yRight + padY, rightLogoW, targetLogoH)
+          }
+
+          resolve(canvas.toDataURL('image/jpeg', 0.92))
+        }
+
+        if (
+          logoLeft.complete &&
+          logoRight.complete &&
+          logoLeft.naturalWidth > 0 &&
+          logoRight.naturalWidth > 0
+        ) {
           drawWatermarkOverlay()
-        } else {
-          logo.onload = drawWatermarkOverlay
-          logo.onerror = drawWatermarkOverlay
         }
       } catch (e) {
         resolve(imageSrc)
@@ -255,9 +292,11 @@ export default function AdminDashboardPage() {
   const [aiPromptModalOpen, setAiPromptModalOpen] = useState(false)
   const [customAiTopic, setCustomAiTopic] = useState('')
 
-  // Watermark State
+  // Watermark State (Kiri: Logo Kanwil, Kanan: Logo P5HAM)
   const [enableWatermark, setEnableWatermark] = useState(true)
-  const [watermarkPos, setWatermarkPos] = useState<'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'>('top-right')
+  const [watermarkPos, setWatermarkPos] = useState<
+    'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'left-only' | 'right-only'
+  >('top')
   const [isWatermarking, setIsWatermarking] = useState(false)
 
   // AI News Article Generator Handler using Gemini
@@ -717,7 +756,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
         }
 
         setNews((prev) => [savedEntry, ...prev])
-        setPublishSuccessMsg('Warta Berita berhasil diterbitkan ke Portal Publik! (Dilengkapi Logo KemenHAM & Watermark P5HAM)')
+        setPublishSuccessMsg('Warta Berita berhasil diterbitkan ke Portal Publik! (Dilengkapi Logo Kanwil Kalsel & Logo P5HAM)')
       }
 
       // Persist locally so news is ALWAYS available
@@ -1932,7 +1971,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                           fontWeight: 700,
                         }}
                       >
-                        Logo + P5HAM
+                        Logo Kanwil + P5HAM
                       </span>
                     </div>
 
@@ -1955,7 +1994,7 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                         {isWatermarking ? (
                           <div style={{ textAlign: 'center', color: 'var(--blue)', fontSize: '13px', fontWeight: 600 }}>
                             <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 6px' }} />
-                            <span>Menempelkan Logo KemenHAM & P5HAM...</span>
+                            <span>Menempelkan Logo Kanwil (Kiri) & P5HAM (Kanan)...</span>
                           </div>
                         ) : postImageUrl ? (
                           <img
@@ -2021,23 +2060,23 @@ FORMAT RESPON: Kembalikan dalam format JSON murni persis berikut (tanpa blok mar
                             style={{ cursor: 'pointer' }}
                           />
                           <label htmlFor="chk-watermark" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--navy)', cursor: 'pointer' }}>
-                            Watermark Logo KemenHAM + P5HAM
+                            Watermark: Logo Kanwil (Kiri) + P5HAM (Kanan)
                           </label>
                         </div>
 
                         {enableWatermark && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#646970' }}>
-                              <span>Posisi Stamp:</span>
+                              <span>Posisi:</span>
                               <select
                                 value={watermarkPos}
                                 onChange={(e: any) => setWatermarkPos(e.target.value)}
-                                style={{ fontSize: '11px', padding: '2px 4px', borderRadius: '3px', border: '1px solid #c3c4c7' }}
+                                style={{ fontSize: '11px', padding: '3px 6px', borderRadius: '3px', border: '1px solid #c3c4c7', background: '#fff' }}
                               >
-                                <option value="top-right">Kanan Atas (Default)</option>
-                                <option value="top-left">Kiri Atas</option>
-                                <option value="bottom-right">Kanan Bawah</option>
-                                <option value="bottom-left">Kiri Bawah</option>
+                                <option value="top">Bilah Atas (Kiri: Kanwil, Kanan: P5HAM) [Standar]</option>
+                                <option value="bottom">Bilah Bawah (Kiri: Kanwil, Kanan: P5HAM)</option>
+                                <option value="left-only">Hanya Logo Kanwil (Kiri Atas)</option>
+                                <option value="right-only">Hanya Logo P5HAM (Kanan Atas)</option>
                               </select>
                             </div>
 
