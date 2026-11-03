@@ -31,6 +31,7 @@
 html {
   scroll-behavior: smooth;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
 }
 
 body {
@@ -38,6 +39,7 @@ body {
   background: #fbfbfa;
   color: var(--ink);
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 a {
@@ -1656,57 +1658,442 @@ h1.hero-heading em {
 }
 
 @media (max-width: 768px) {
-  .menu-button {
-    display: block;
+  /* Layout & Container */
+  .container {
+    width: calc(100% - 24px) !important;
   }
 
+  /* Topline Banner */
+  .topline {
+    font-size: 10.5px;
+  }
+  .top-inner {
+    padding: 5px 0;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 3px;
+    min-height: auto;
+  }
+  .top-brand-info {
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+    gap: 4px;
+  }
+  .top-brand-info span:not(.gov-badge) {
+    font-size: 10px;
+  }
+  .top-actions {
+    justify-content: center;
+    gap: 6px;
+  }
+  .top-location,
+  .top-divider {
+    display: none;
+  }
+
+  /* Header & Navigation */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .nav-wrap {
+    height: 56px;
+  }
+  .brand img {
+    width: 28px;
+    height: 34px;
+  }
+  .brand strong {
+    font-size: 13px;
+  }
+  .brand small {
+    font-size: 9.5px;
+  }
+  .menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    color: var(--navy);
+  }
   .main-nav {
     display: none;
     position: absolute;
-    top: 80px;
+    top: 56px;
     left: 0;
     right: 0;
     background: #ffffff;
     border-bottom: 1px solid var(--line);
     flex-direction: column;
     align-items: stretch;
-    padding: 20px 24px 28px;
-    gap: 10px;
-    box-shadow: 0 20px 40px rgba(14, 34, 56, 0.15);
+    padding: 12px 16px 20px;
+    gap: 4px;
+    box-shadow: 0 16px 32px rgba(14, 34, 56, 0.12);
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-
   .main-nav.open {
     display: flex;
   }
-
   .nav-link {
-    padding: 12px 14px;
+    padding: 10px 12px;
+    font-size: 13.5px;
     border-radius: 6px;
   }
-
   .nav-cta {
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    width: 100%;
   }
 
-  .pillars-container {
-    grid-template-columns: 1fr;
+  /* Hero Section: Ringkas & Padat */
+  .hero-grid {
+    min-height: auto;
+    padding: 14px 0 20px !important;
+    gap: 16px !important;
+  }
+  .hero-copy {
+    padding: 0 !important;
+  }
+  .eyebrow {
+    font-size: 9.5px !important;
+    margin-bottom: 6px !important;
+  }
+  h1.hero-heading {
+    font-size: 19px !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 700 !important;
+    margin-bottom: 8px !important;
+  }
+  .hero-desc {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 12px !important;
+  }
+  .hero-actions {
+    flex-direction: column;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    width: 100%;
+  }
+  .hero-actions .button {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 12px !important;
+    font-size: 12px !important;
+  }
+  .hero-badge-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px !important;
+    width: 100%;
+  }
+  .hero-badge {
+    width: 100%;
+    justify-content: center;
+    padding: 5px 8px !important;
+    font-size: 10px !important;
   }
 
+  /* Hero Kakanwil Card */
+  .hero-card-featured {
+    padding: 12px 10px !important;
+    max-width: 100%;
+    border-radius: 10px !important;
+  }
+  .hero-kakanwil-row {
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .hero-kakanwil-row > div:first-child {
+    width: 58px !important;
+    height: 68px !important;
+    border-radius: 6px !important;
+  }
+  .hero-kakanwil-row h3 {
+    font-size: 13px !important;
+    margin: 2px 0 !important;
+  }
+  .hero-kakanwil-row p {
+    font-size: 9.5px !important;
+    line-height: 1.3 !important;
+  }
+  .hero-card-stats {
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+  .stat-item {
+    padding: 6px 8px !important;
+    border-radius: 6px !important;
+  }
+  .stat-num {
+    font-size: 15px !important;
+  }
+  .stat-label {
+    font-size: 9px !important;
+  }
+
+  /* General Section Styles: Ringkas dan Proporsional */
+  .section {
+    padding: 22px 0 !important;
+  }
+  .section-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+  }
+  .section-kicker {
+    font-size: 9px !important;
+    letter-spacing: 0.1em !important;
+    margin-bottom: 3px !important;
+  }
+  .section-title {
+    font-size: 16.5px !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+  }
+  .section-lead {
+    font-size: 11.5px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 10px !important;
+  }
+  .view-all-link {
+    font-size: 11.5px !important;
+    margin-top: 2px;
+  }
+
+  /* AI Factsheet */
+  .geo-factsheet-box {
+    padding: 10px 12px !important;
+    margin: 8px 0 !important;
+    border-radius: 0 6px 6px 0;
+  }
+  .geo-factsheet-box h4 {
+    font-size: 12px !important;
+    margin-bottom: 4px !important;
+  }
+  .geo-factsheet-box p {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Card Grids */
   .card-grid-3,
   .card-grid-2,
   .card-grid-4,
   .gallery-grid {
     grid-template-columns: 1fr;
+    gap: 10px !important;
+  }
+  .feature-card {
+    padding: 12px 12px !important;
+    border-radius: 8px !important;
+  }
+  .feature-card-icon {
+    width: 32px !important;
+    height: 32px !important;
+    margin-bottom: 8px !important;
+    border-radius: 6px !important;
+  }
+  .feature-card h3 {
+    font-size: 14px !important;
+    margin-bottom: 3px !important;
+  }
+  .feature-card p {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    margin-bottom: 8px !important;
+  }
+  .feature-card-tag {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+  }
+  .feature-card-link {
+    font-size: 11px !important;
   }
 
+  /* News Portal */
+  .news-portal-grid {
+    grid-template-columns: 1fr;
+    gap: 12px !important;
+  }
+  .news-featured-img {
+    height: 140px !important;
+    padding: 10px !important;
+  }
+  .news-featured-img h3 {
+    font-size: 13.5px !important;
+    line-height: 1.25 !important;
+  }
+  .news-featured-body {
+    padding: 10px 10px !important;
+  }
+  .news-featured-body p {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 8px !important;
+  }
+  .news-featured-footer {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+  }
+  .news-featured-footer .button {
+    width: 100%;
+    justify-content: center;
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+  }
+  .news-side-item {
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+  }
+  .news-side-item h4 {
+    font-size: 12px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Gallery Grid */
+  .gallery-card-thumb {
+    height: 130px !important;
+  }
+  .gallery-card-content {
+    padding: 10px 12px !important;
+  }
+  .gallery-card-content h4 {
+    font-size: 12px !important;
+  }
+
+  /* P5HAM Pillars */
+  .pillars-container {
+    grid-template-columns: 1fr;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+  .pillar-card {
+    padding: 10px 12px !important;
+    border-radius: 6px !important;
+  }
+  .pillar-number {
+    font-size: 9.5px !important;
+    margin-bottom: 2px !important;
+  }
+  .pillar-title {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    margin-bottom: 3px !important;
+  }
+  .pillar-desc {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Regencies Cloud */
+  .regencies-cloud {
+    gap: 6px !important;
+  }
+  .regencies-cloud span {
+    padding: 4px 8px !important;
+    font-size: 10.5px !important;
+    gap: 4px !important;
+  }
+
+  /* CTA Banner Box */
+  .home-cta-box {
+    padding: 14px 12px !important;
+    gap: 10px !important;
+    border-radius: 8px !important;
+  }
+  .home-cta-box h2 {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+    margin: 4px 0 6px !important;
+  }
+  .home-cta-box p {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+  }
+  .home-cta-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px !important;
+  }
+  .home-cta-actions .button {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px !important;
+    font-size: 11.5px !important;
+  }
+
+  /* Buttons Global Mobile */
+  .button {
+    padding: 8px 12px !important;
+    font-size: 11.5px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 28px 0 16px;
+  }
   .footer-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .footer-bottom-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
   }
 
+  /* Tables & Info */
   .info-table-row {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 2px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: calc(100% - 20px) !important;
+  }
+  h1.hero-heading {
+    font-size: 18px !important;
+  }
+  .section-title {
+    font-size: 15.5px !important;
+  }
+  .hero-card-featured {
+    padding: 10px 8px !important;
+  }
+  .hero-kakanwil-row > div:first-child {
+    width: 52px !important;
+    height: 62px !important;
+  }
+  .hero-kakanwil-row h3 {
+    font-size: 12px !important;
+  }
+  .stat-num {
+    font-size: 14px !important;
+  }
+  .stat-label {
+    font-size: 8.5px !important;
   }
 }
 

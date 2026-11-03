@@ -304,7 +304,7 @@ export default function HomePage() {
           {/* Hero Featured Card - Kakanwil Portrait & Quick Stats */}
           <div className="hero-art-box">
             <div className="hero-card-featured" style={{ borderTop: '5px solid var(--gold)', padding: '24px' }}>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--line)' }}>
+              <div className="hero-kakanwil-row" style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--line)' }}>
                 <div style={{ position: 'relative', width: '96px', height: '110px', borderRadius: '12px', overflow: 'hidden', border: '2px solid var(--gold)', flexShrink: 0, boxShadow: '0 8px 20px rgba(18,60,105,0.2)' }}>
                   <img
                     src="/kakanwil-karyadi.png"
@@ -512,7 +512,7 @@ export default function HomePage() {
                     {featured.summary}
                   </p>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--line)', paddingTop: '16px', fontSize: '12px', color: 'var(--muted)' }}>
+                  <div className="news-featured-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--line)', paddingTop: '16px', fontSize: '12px', color: 'var(--muted)' }}>
                     <span>
                       <Calendar size={13} style={{ display: 'inline', marginRight: '4px' }} /> {featured.date} • ⏱️ {featured.readTime}
                     </span>
@@ -662,7 +662,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div className="regencies-cloud" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {regenciesQuickList.map((reg, idx) => (
               <span
                 key={idx}
@@ -693,6 +693,7 @@ export default function HomePage() {
       <section className="section section-cream">
         <div className="container">
           <div
+            className="home-cta-box"
             style={{
               background: '#ffffff',
               borderRadius: '16px',
@@ -717,7 +718,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+            <div className="home-cta-actions" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
               <Link href="/pengaduan" className="button primary">
                 <ShieldAlert size={16} /> Formulir Pengaduan Online
               </Link>
